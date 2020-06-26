@@ -14,7 +14,9 @@ followed by local pretraining around T1of task B. After pretraining, the agent i
 environment of task B. The additional training a method needs before it has fully adapted to task B determines the size
  of theLoCA regret.
  
- <img width=“500” height=“400" alt=“sample1_3” src=“https://user-images.githubusercontent.com/38594307/79504376-d0396880-8000-11ea-92ef-9d0113b0d4fd.png”>
+ ![Setup]( <img width=“500” height=“400" alt=“sample1_3” src=“https://user-images.githubusercontent.com/38594307/79504376-d0396880-8000-11ea-92ef-9d0113b0d4fd.png”>)
+
+ 
  ### Citation:
 
 If you find this work useful, please consider citing our [paper]().
