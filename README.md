@@ -14,7 +14,7 @@ followed by local pretraining around T1of task B. After pretraining, the agent i
 environment of task B. The additional training a method needs before it has fully adapted to task B determines the size
  of theLoCA regret.
  
- ![Setup]( <img width=“500” height=“400" alt=“sample1_3” src=“https://user-images.githubusercontent.com/38594307/79504376-d0396880-8000-11ea-92ef-9d0113b0d4fd.png”>)
+![setup](https://user-images.githubusercontent.com/43013139/85905543-a7d8a200-b7d9-11ea-96d5-15f4ef93a076.png)
 
  
  ### Citation:
@@ -51,4 +51,5 @@ We adopted MountainCar env for LOCA regret calculation. In our variation, the ex
 hill corresponds with T1; we added an additional terminal state to the domain, T2, that corresponds with the cart being 
 at the bottom of the hill with a velocity close to 0.
 
-![MountainCar](img/mountaincar.png)
+![mountaincar](https://user-images.githubusercontent.com/43013139/85905575-c048bc80-b7d9-11ea-9077-323173ae69e3.png)
+
