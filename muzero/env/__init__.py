@@ -11,7 +11,7 @@ class ClassicControlConfig(BaseMuZeroConfig):
         super(ClassicControlConfig, self).__init__(
             training_steps=20000,
             evaluate_interval=1000,
-            evaluate_episodes=5,
+            evaluate_episodes=3,
             checkpoint_interval=20,
             max_moves=300,
             discount=0.997,
@@ -36,8 +36,8 @@ class ClassicControlConfig(BaseMuZeroConfig):
         else:
             return 0.25
 
-    def set_game(self, env_name, setting, save_video=False, save_path=None, video_callable=None):
-        self.env_name = env_name
+    def set_game(self, env, setting, save_video=False, save_path=None, video_callable=None):
+        self.env = env
         game = self.new_game(setting)
         self.obs_shape = game.reset().shape[0]
         self.action_space_size = game.action_space_size
@@ -52,7 +52,6 @@ class ClassicControlConfig(BaseMuZeroConfig):
 
         env = MountainCarEnv(setting)
 
-        # env = CarNav(discount=0.977)
         if seed is not None:
             env.seed(seed)
 

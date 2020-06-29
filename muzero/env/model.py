@@ -24,7 +24,6 @@ class MuZeroNet(BaseMuZeroNet):
         self._prediction_value = nn.Sequential(nn.Linear(self.hx_size, 16),
                                                nn.LeakyReLU(),
                                                nn.Linear(16, value_support_size))
-        print(self._representation)
         self.action_space_n = action_space_n
 
         self._prediction_value[-1].weight.data.fill_(0)

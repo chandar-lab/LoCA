@@ -39,26 +39,31 @@ class MuZeroAgent(object):
     def reset_epsilon(self):
         self.epsilon = self.epsilon_init
 
-    def run_train(self, experiment_settings, include_transition=True):
+    def run_pretrain(self, experiment_settings, include_transition=True):
         print("train phase started.")
         self.step_counter = 0
         self.domain_settings['phase'] = 'train'
         self.config.training_steps = experiment_settings['num_train_steps']
+        self.config.evaluate_interval = self.config.training_steps // experiment_settings['num_datapoints']
         self.network = train(self.config, self.domain_settings, self.network, self.summary_writer)
         if include_transition is True:
             self.config.training_steps = experiment_settings['num_transition_steps']
+            self.config.evaluate_interval = self.config.training_steps // experiment_settings[
+                'num_datapoints']
             summary_writer = update_summary_writer(self.config, 'transition', self.domain_settings)
             self.summary_writer = summary_writer
-            self.run_transition()
+            self.run_local_pretrain()
 
-    def run_transition(self):
+    def run_local_pretrain(self):
         print("transition phase started.")
         self.domain_settings['phase'] = 'transition'
         self.network = train(self.config, self.domain_settings, self.network, self.summary_writer)
 
-    def run_test(self, experiment_settings):
+    def run_train(self, experiment_settings):
         self.domain_settings['phase'] = 'test'
         self.config.training_steps = experiment_settings['num_test_steps']
+        self.config.evaluate_interval = self.config.training_steps // experiment_settings[
+            'num_datapoints']
         _, performance = test(self.config, self.domain_settings, self.network, self.summary_writer)
 
         return np.array(performance[0]), performance[1]
@@ -118,7 +123,7 @@ def build_agent(domain_settings, args):
 
 
 def load_agent(muzero_args, domain_settings, experiment_settings):
-    muzero_args.seed = muzero_args.seed + 1
+    muzero_args.seed = muzero_args.seed
     muzero_args.opr = 'transition'
     muzero_config.set_config(muzero_args, domain_settings)
     assert os.path.exists(muzero_config.model_path), 'model not found at {}'.format(muzero_config.model_path)

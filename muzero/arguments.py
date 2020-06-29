@@ -2,9 +2,9 @@ import os
 import torch
 
 class get_muzero_args(object):
-    def __init__(self):
-        self.env = 'MountainCar' # 'Name of the environment'
-        self.result_dir = os.path.join(os.getcwd()) + '/results/MuZero'
+    def __init__(self, args):
+        self.env = args.env # 'Name of the environment'
+        self.result_dir = os.path.join(os.getcwd()) + '/results/' + args.env + '/MuZero'
         self.opr = 'train' # choices=['train', 'test']
         self.no_cuda = False
         self.debug = False

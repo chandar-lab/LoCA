@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import random
 import seaborn as sns; sns.set()
@@ -6,7 +7,7 @@ import matplotlib.pyplot as plt
 import math
 from copy import deepcopy
 from config import get_sarsa_setting
-from mountain_car import MountainCar_SARSA
+from sarsa_lambda.mountain_car import MountainCar_SARSA
 import pickle
 
 
@@ -38,7 +39,6 @@ class SarsaLambdaAgent(object):
 
         self.theta = np.zeros(self.total_features)
         self.theta_train = None
-        self.theta_transition = None
         self.e_trace = np.zeros(self.total_features)
 
     @staticmethod
@@ -56,28 +56,78 @@ class SarsaLambdaAgent(object):
             self.e_trace[i] = 0
         self.Qs_old = 0
 
-    def run_train(self, experiment_settings, include_transition=False):
-        # Training phase
+    def run_pretrain(self, experiment_settings, include_transition=False):
+        '''
+        Training phase
+        '''
         self.initialize()
         # my_agent.set_epsilon(1.0)  # some high exploration early in training to ensure model gets learned well
-        # my_agent.run_train(Experiment_settings['num_train_steps1'])
+        # self.train_max_steps = experiment_settings['num_train_steps1']
+        # my_agent._train()
         # my_agent.reset_epsilon()
         self.train_max_steps = experiment_settings['num_train_steps']
-        self._train()
+        self._pretrain(task=0, phase='pre_train', eval=True)
         if include_transition:
             self.train_max_steps = experiment_settings['num_transition_steps']
-            self._transition()
+            self._pretrain(task=1, phase='local_pre_train', eval=False)
 
         if experiment_settings['save']:
-            with open('results/sarsa_lambda/agents/' + experiment_settings['filename'] + '.pkl', 'wb') as output:
+            os.makedirs('results/' + experiment_settings['env'] + '/sarsa_lambda/agents/', exist_ok=True)
+            with open('results/' + experiment_settings['env'] + '/sarsa_lambda/agents/' + experiment_settings['filename'] + '.pkl', 'wb') as output:
                 pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
 
         self.domain.flipped_actions = False
-
-    def _train(self):
-        print("pre-train phase started.")
-        self.domain.set_task(0)  # set domain to task A
+        
+    def run_train(self, experiment_settings):
+        self.domain.set_task(1)  # set domain to task B
         self.domain.set_phase('train')
+        self.train_max_steps = experiment_settings['num_test_steps']
+        self.set_epsilon(self.epsilon_init_test)
+        self.epsilon_init = self.epsilon_init_test
+        self.epsilon_decay_steps = self.epsilon_decay_steps_test
+
+        if self.theta_train is not None:
+            self.theta = np.copy(self.theta_train)
+
+        print(''), print('reward terminal 1: {}, reward terminal 2: {}'.format(self.domain.reward_terminal1,
+                                                                               self.domain.reward_terminal2))
+        terminals_test, init_states, G_test, perf_list = [], [], [], []
+        num_steps, num_episodes, data_point = 0, 0, 0
+        self.step_counter, self.episode_count = 0, 0
+        performance = []
+        eval = True
+        while num_steps < self.train_max_steps:
+            [G, n_steps, terminal, init_state, perf] = self._run_episode(num_datapoints=experiment_settings['num_datapoints'],
+                                                                        eval=eval, fixed_behavior=self.fixed_behavior) #
+            # self.decay_epsilon()
+
+            if self.episode_count > 100:
+                terminals_test.append(terminal)
+                init_states.append(init_state)
+            G_test.append(G)
+            self.episode_count += 1
+            if self.episode_count % 50 == 0:
+                print('Step: {} ] G: {:<8.3f} ] Episodes Collected: {:<10d}, epsilon: {}'.format(
+                    num_steps, sum(G_test[-20:]) / 20, self.episode_count, self.epsilon))
+            for p in perf:
+                performance.append(p)
+            num_steps += n_steps
+
+        plot_state_map(init_states, terminals_test, phase='test')
+        if eval:
+            plot_total_return(performance, label='test')
+            print("avg reward: ", sum(performance) / len(performance), " final reward: ",
+                  np.mean(np.array(performance[-3:])))
+
+        self.episode_count = 0
+        window_size = self.train_max_steps // experiment_settings['num_datapoints']
+        steps = np.arange(1, experiment_settings['num_datapoints'] + 1) * window_size
+        return np.array(performance), steps
+
+    def _pretrain(self, task, phase, eval):
+        print("{} phase started.".format(phase))
+        self.domain.set_task(task)  # set domain to task A
+        self.domain.set_phase(phase)
         print(''), print('reward terminal 1: {}, reward terminal 2: {}'.format(self.domain.reward_terminal1,
                          self.domain.reward_terminal2))
         if self.theta_train is None:
@@ -89,16 +139,16 @@ class SarsaLambdaAgent(object):
         self.step_counter, self.episode_count = 0,  0
 
         while num_steps < self.train_max_steps:
-            [G, n_steps, terminal, init_state, perf] = self.run_episode(num_datapoints=100, eval=True)
+            [G, n_steps, terminal, init_state, perf] = self._run_episode(num_datapoints=10, eval=eval)
             self.decay_epsilon()
 
             G_training.append(G)
-            if self.episode_count > 500:
-                terminals_training.append(terminal)
-                init_states.append(init_state)
+
+            terminals_training.append(terminal)
+            init_states.append(init_state)
             num_steps += n_steps
             self.episode_count += 1
-            if self.episode_count % 500 == 0:
+            if phase is 'pre_train' and self.episode_count % 500 == 0:
                 print('Step: {} ] G: {:<8.3f} ] Episodes Collected: {:<10d} ] epsilon: {}'.format(
                     num_steps, sum(G_training[-20:]) / 20, self.episode_count, self.epsilon))
 
@@ -106,9 +156,10 @@ class SarsaLambdaAgent(object):
                 performance.append(p)
 
         # plot the state map
-        plot_state_map(init_states, terminals_training, phase='train')
-        plot_total_return(G_training, label='train')
-        plot_total_return(performance, label='train')
+        plot_state_map(init_states, terminals_training, phase=phase)
+        plot_total_return(G_training, label=phase)
+        if eval:
+            plot_total_return(performance, label=phase)
 
         print('Pre-Training: Percentage of episodes ended at terminal A :{} %, terminal B: {} %'.format(
             terminals_training.count(1) / len(terminals_training),
@@ -117,71 +168,30 @@ class SarsaLambdaAgent(object):
         self.theta_train = self.theta
         self.behavior_policy = self.get_behavior_policy()
 
-    def _transition(self):
-        print("Local pre-training phase started.")
-        self.domain.set_task(1)  # set domain to task B
-        self.domain.set_phase('transition')
-        assert self.theta_train is not None
-        self.theta = np.copy(self.theta_train)
-        print(''), print('reward terminal 1: {}, reward terminal 2: {}'.format(self.domain.reward_terminal1,
-                                                                               self.domain.reward_terminal2))
-        terminals_transition, init_states = [], []
-        self.step_counter, num_steps = 0, 0
-        while num_steps < self.train_max_steps:
-            [G, n_steps, terminal, init_state, _] = self.run_episode(fixed_behavior=True)
-            terminals_transition.append(terminal)
-            init_states.append(init_state)
-            num_steps += n_steps
-            if num_steps % 5000 == 0:
-                print('Step: {} ] G: {:<8.3f} ] Episodes Collected: {:<10d}'.format(
-                    num_steps, G, self.episode_count))
+    # def _local_pretrain(self):
+    #     print("Local pre-training phase started.")
+    #     self.domain.set_task(1)  # set domain to task B
+    #     self.domain.set_phase('transition')
+    #     assert self.theta_train is not None
+    #     self.theta = np.copy(self.theta_train)
+    #     print(''), print('reward terminal 1: {}, reward terminal 2: {}'.format(self.domain.reward_terminal1,
+    #                                                                            self.domain.reward_terminal2))
+    #     terminals_transition, init_states = [], []
+    #     self.step_counter, num_steps = 0, 0
+    #     while num_steps < self.train_max_steps:
+    #         [G, n_steps, terminal, init_state, _] = self._run_episode(fixed_behavior=True)
+    #         terminals_transition.append(terminal)
+    #         init_states.append(init_state)
+    #         num_steps += n_steps
+    #         if num_steps % 5000 == 0:
+    #             print('Step: {} ] G: {:<8.3f} ] Episodes Collected: {:<10d}'.format(
+    #                 num_steps, G, self.episode_count))
+    #
+    #     self.theta_train = self.theta
+    #     self.episode_count = 0
+    #     plot_state_map(init_states, terminals_transition, phase='transition')
 
-        self.theta_transition = self.theta
-        self.episode_count = 0
-        plot_state_map(init_states, terminals_transition, phase='transition')
-
-    def run_test(self, experiment_settings):
-        self.domain.set_task(1)  # set domain to task B
-        self.domain.set_phase('test')
-        self.train_max_steps = experiment_settings['num_test_steps']
-        self.set_epsilon(self.epsilon_init_test)
-        self.epsilon_init = self.epsilon_init_test
-        self.epsilon_decay_steps = self.epsilon_decay_steps_test
-        if self.theta_transition is not None:
-            self.theta = np.copy(self.theta_transition)
-        elif self.theta_train is not None:
-            self.theta = np.copy(self.theta_train)
-
-        print(''), print('reward terminal 1: {}, reward terminal 2: {}'.format(self.domain.reward_terminal1,
-                                                                               self.domain.reward_terminal2))
-        terminals_test, init_states, G_test, perf_list = [], [], [], []
-        num_steps, num_episodes, data_point = 0, 0, 0
-        self.step_counter, self.episode_count = 0, 0
-        performance = []
-        while num_steps < self.train_max_steps:
-            [G, n_steps, terminal, init_state, perf] = self.run_episode(num_datapoints=100,
-                                                                        eval=True, fixed_behavior=self.fixed_behavior) #
-            # self.decay_epsilon()
-
-            if self.episode_count > 400:
-                terminals_test.append(terminal)
-                init_states.append(init_state)
-            G_test.append(G)
-            self.episode_count += 1
-            if self.episode_count % 200 == 0:
-                print('Step: {} ] G: {:<8.3f} ] Episodes Collected: {:<10d}, epsilon: {}'.format(
-                    num_steps, sum(G_test[-20:]) / 20, self.episode_count, self.epsilon))
-            for p in perf:
-                performance.append(p)
-            num_steps += n_steps
-
-        plot_state_map(init_states, terminals_test, phase='test')
-        plot_total_return(performance, label='performance')
-        self.episode_count = 0
-        print("avg reward: ", sum(performance) / len(performance), " final reward: ", np.mean(np.array(performance[-3:])))
-        return np.array(performance), None
-
-    def run_episode(self, num_datapoints=10, eval=False, fixed_behavior = False):
+    def _run_episode(self, num_datapoints=10, eval=False, fixed_behavior = False):
         window_size = self.train_max_steps // num_datapoints
         data_point = 0
         performance = []
@@ -393,8 +403,8 @@ def plot_state_map(init_states, terminals, phase='transition'):
     plt.show()
 
 
-def plot_total_return(G_training, label='test'):
-    plt.plot(np.convolve(G_training, np.ones((1,)) / 1, mode='same'), label=label)
+def plot_total_return(return_curve, label='test'):
+    plt.plot(np.convolve(return_curve, np.ones((1,)) / 1, mode='same'), label=label)
     plt.legend()
     plt.show()
 
@@ -408,7 +418,7 @@ def build_agent(domain_settings, args):
 
 
 def load_agent(agent_args, domain_settings, experiment_settings):
-    with open('results/sarsa_lambda/agents/' + experiment_settings['filename'] + '.pkl', 'rb') as input:
+    with open('results/' + agent_args.env + '/sarsa_lambda/agents/' + experiment_settings['filename'] + '.pkl', 'rb') as input:
         my_agent = pickle.load(input)
 
     return my_agent, _

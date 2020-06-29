@@ -10,7 +10,7 @@ def get_sarsa_setting():
     agent_settings['epsilon_init'] = 1
     agent_settings['epsilon_init_test'] = 0.1
     agent_settings['ep_decay_rate'] = 0.1
-    agent_settings['epsilon_decay_steps_train'] = 10000
+    agent_settings['epsilon_decay_steps_train'] = 1000
     agent_settings['epsilon_decay_steps_test'] = 1000
     agent_settings['transition_epsilon'] = 0.1
     agent_settings['theta_init'] = 0
@@ -60,19 +60,14 @@ def get_experiment_setting(args):
     # 2:  MuZero
 
     experiment_settings = {}
+    experiment_settings['env'] = args.env
     experiment_settings['method'] = args.method
-    if args.method == 'sarsa_lambda':
-        experiment_settings['method'] = 1
-    elif args.method == 'MuZero':
-        experiment_settings['method'] = 2
-    else:
-        assert False, 'HvS: Invalid method.'
     experiment_settings['num_train_steps1'] = 100000
-    experiment_settings['num_train_steps'] = 5000000
-    experiment_settings['num_transition_steps'] = 5000
-    experiment_settings['num_test_steps'] = 30000
-    experiment_settings['num_datapoints'] = 100
-    experiment_settings['num_runs'] = 5
+    experiment_settings['num_train_steps'] = 9000 #1000000
+    experiment_settings['num_transition_steps'] = 500 #5000
+    experiment_settings['num_test_steps'] = 9000 #30000
+    experiment_settings['num_datapoints'] = 3
+    experiment_settings['num_runs'] = 3
     experiment_settings['save'] = args.save
     experiment_settings['filename'] = None
 

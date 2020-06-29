@@ -126,7 +126,9 @@ class SharedStorage(object):
     def add_evaluate_log(self, score):
         self.evaluate_log.append(score)
         self.evaluate_log_all.append(score)
-        self.evaluate_steps.append(self.step_counter)
+
+    def add_evaluate_steps(self, steps):
+        self.evaluate_steps.append(steps)
 
     def get_evaluate_log(self):
         return self.evaluate_log_all, self.evaluate_steps
@@ -343,9 +345,7 @@ def _train(config, shared_storage, replay_buffer, domain_settings, summary_write
             soft_update(target_model, model, tau=1e-2)
             target_model.eval()
 
-        # if domain_settings['phase'] != 'transition':
-
-        if step_count % 50 == 0:
+        if ray.get(shared_storage.get_counter.remote()) % 50 == 0:
             _log(config, step_count, log_data, model, replay_buffer, lr,
                  ray.get(shared_storage.get_worker_logs.remote()), summary_writer)
 
@@ -364,29 +364,28 @@ def _evaluate(config, domain_settings, shared_storage):
     evaluate_model = config.get_uniform_network().to('cpu')
     best_evaluate_score = float('-inf')
 
-    eval_per_step = 1000
-    if domain_settings['phase'] is 'test' or domain_settings['phase'] is 'transition':
-        eval_per_step = 200
-    step_count = ray.get(shared_storage.get_counter.remote())
-    while step_count < config.training_steps and step_count % eval_per_step == 0:
-        evaluate_model.set_weights(ray.get(shared_storage.get_weights.remote()))
-        evaluate_model.eval()
+    while ray.get(shared_storage.get_counter.remote()) < config.training_steps:
+        if ray.get(shared_storage.get_counter.remote()) > 0 and \
+                ray.get(shared_storage.get_counter.remote()) % config.evaluate_interval == 0:
+            print('Evaluation started at episode: {}'.format(ray.get(shared_storage.get_counter.remote())))
+            shared_storage.add_evaluate_steps.remote(ray.get(shared_storage.get_counter.remote()))
+            evaluate_model.set_weights(ray.get(shared_storage.get_weights.remote()))
+            evaluate_model.eval()
 
-        evaluate_score = evaluate(config, domain_settings, evaluate_model, config.evaluate_episodes, 'cpu', False)
-        if evaluate_score >= best_evaluate_score:
-            best_evaluate_score = evaluate_score
-            print('best_evaluate_score: {}'.format(best_evaluate_score))
-            torch.save(evaluate_model.state_dict(), config.model_path)
+            evaluate_score = evaluate(config, domain_settings, evaluate_model, config.evaluate_episodes, 'cpu', False)
+            if evaluate_score >= best_evaluate_score:
+                best_evaluate_score = evaluate_score
+                print('best_evaluate_score: {}'.format(best_evaluate_score))
+                torch.save(evaluate_model.state_dict(), config.model_path)
+            if domain_settings['phase'] == 'transition':
+                # It always saves the model in transition phase regardless of the performance
+                torch.save(evaluate_model.state_dict(), config.model_path)
 
-        shared_storage.add_evaluate_log.remote(evaluate_score)
-
-        performance, _ = ray.get(shared_storage.get_evaluate_log.remote())
-        if ray.get(shared_storage.get_counter.remote()) > 5000 and sum(performance[-100:]) / 100 > 0.98:
-            break
-        if domain_settings['phase'] is 'train':
-            time.sleep(5000)
-        elif domain_settings['phase'] is 'test' or domain_settings['phase'] is 'transition':
-            time.sleep(200)
+            shared_storage.add_evaluate_log.remote(evaluate_score)
+            performance, _ = ray.get(shared_storage.get_evaluate_log.remote())
+            time.sleep(10)
+            if ray.get(shared_storage.get_counter.remote()) > 5000 and sum(performance[-100:]) / 100 > 0.98:
+                break
 
 
 def train(config, domain_settings, network, summary_writer=None):
@@ -395,8 +394,7 @@ def train(config, domain_settings, network, summary_writer=None):
                                         prob_alpha=config.priority_prob_alpha)
     workers = [DataWorker.remote(rank, config, domain_settings, storage, replay_buffer).run.remote()
                for rank in range(0, config.num_actors)]
-    #
-    # if domain_settings['phase'] == 'train':
+
     workers += [_evaluate.remote(config, domain_settings, storage)]
     _train(config, storage, replay_buffer, domain_settings, summary_writer)
     ray.wait(workers, len(workers))
@@ -413,9 +411,9 @@ def test(config, domain_settings, trained_net, summary_writer=None):
                for rank in range(0, config.num_actors)]
     workers += [_evaluate.remote(config, domain_settings, storage)]
     _train(config, storage, replay_buffer, domain_settings, summary_writer)
-    performance = ray.get(storage.get_evaluate_log.remote())
-    print(performance)
     ray.wait(workers, len(workers))
+    performance = ray.get(storage.get_evaluate_log.remote())
+    print('Training performance: {}'.format(performance))
     trained_net = config.get_uniform_network().set_weights(ray.get(storage.get_weights.remote())),
 
     return trained_net, performance

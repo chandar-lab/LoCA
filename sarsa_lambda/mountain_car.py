@@ -76,11 +76,11 @@ class MountainCar_SARSA:
 
     def set_phase(self, phase):
         self.phase = phase
-        if phase == 'train':
+        if phase == 'pre_train':
             self.init_state = self.init_state_train
-        elif phase == 'transition':
+        elif phase == 'local_pre_train':
             self.init_state = self.init_state_transition
-        elif phase == 'test':
+        elif phase == 'train':
             self.init_state = self.init_state_test
         else:
             assert False, 'incorrect identifier'

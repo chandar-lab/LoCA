@@ -21,7 +21,7 @@ def _evaluate(config, domain_setting, model, ep_i, device, render, save_video, s
         steps = 0
         obs = env.reset()
 
-        print('####Evaluation: Init state range: ', env.init)
+        # print('####Evaluation: Init state range: ', env.init)
         while terminal == 0 and steps < config.max_moves:
             if render:
                 env.render()
@@ -33,7 +33,7 @@ def _evaluate(config, domain_setting, model, ep_i, device, render, save_video, s
             obs, reward, terminal, info = env.step(action.index)
             steps += 1
             if terminal != 0:
-                print('#### Evaluation ended at terminal: ', terminal)
+                # print('#### Evaluation ended at terminal: ', terminal)
                 ep_reward += reward
                 break
         env.set_eval_mode(False)

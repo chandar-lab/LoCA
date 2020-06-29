@@ -90,6 +90,29 @@ class BaseMuZeroConfig(object):
         self.revisit_policy_search_rate = 0
         self.use_max_priority = None
 
+        # Experiment settings
+        self.env = 'MountainCar'  # 'Name of the environment'
+        self.result_dir = os.path.join(os.getcwd()) + '/results/' + self.env + '/MuZero'
+        self.opr = 'train'  # choices=['train', 'test']
+        self.no_cuda = False
+        self.debug = False
+        self.render = False
+        self.force = True  # 'Overrides past results (default: %(default)s)'
+        self.seed = 0
+        self.value_loss_coeff = 1  # 'scale for value loss (default: %(default)s)
+        self.revisit_policy_search_rate = 0  # 'Rate at which target policy is re-estimated (default: %(default)s)'
+        self.use_max_priority = False  # 'Forces max priority assignment for new incoming data in replay buffer '
+        self.use_priority = False  # 'Uses priority for data sampling in replay buffer. '
+        # 'Also, priority for new data is calculated based on loss (default: False)'
+        self.use_target_model = False  # 'Use target model for bootstrap value estimation (default: %(default)s)'
+        self.test_episodes = 10  # 'Evaluation episode count (default: %(default)s)'
+        self.flippedTask = False  # Flipped terminal in the case of tow terminals
+        self.flippedActions = False  # Shuffling the actions to cancel the effect of model learning
+
+        self.device = 'cuda' if (not self.no_cuda) and torch.cuda.is_available() else 'cpu'
+        assert self.revisit_policy_search_rate is None or 0 <= self.revisit_policy_search_rate <= 1, \
+            ' Revisit policy search rate should be in [0,1]'
+
     def visit_softmax_temperature_fn(self, num_moves, trained_steps):
         raise NotImplementedError
 
@@ -185,17 +208,17 @@ class BaseMuZeroConfig(object):
         if args.revisit_policy_search_rate is not None:
             self.revisit_policy_search_rate = args.revisit_policy_search_rate
 
-        self.exp_path = os.path.join(args.result_dir, args.env,
+        self.exp_path = os.path.join(args.result_dir,
+                                     'seed_{}'.format(self.seed),
                                      'revisit_rate_{}'.format(self.revisit_policy_search_rate),
                                      'val_coeff_{}'.format(self.value_loss_coeff),
                                      'with_target' if self.use_target_model else 'no_target',
                                      'with_prio' if args.use_priority else 'no_prio',
                                      'max_prio' if self.use_max_priority else 'no_max_prio',
-                                     'seed_{}'.format(self.seed),
                                      'unroll_steps_{}'.format(self.num_unroll_steps),
-                                     'opr{}'.format(self.opr),
                                      'flipped_term' if self.flippedTask else 'no_flipped_term',
-                                     'flipped_act' if self.flippedActions else 'no_flipped_act')
+                                     'flipped_act' if self.flippedActions else 'no_flipped_act',
+                                     'opr{}'.format(self.opr))
 
         self.model_path = os.path.join(self.exp_path, 'model.p')
         return self.exp_path
