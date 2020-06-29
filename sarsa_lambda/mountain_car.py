@@ -32,7 +32,7 @@ class MountainCar_SARSA:
         self.task = 0
         self.reward_terminal1 = 4
         self.reward_terminal2 = 2
-        self.phase = 'train'
+        self.phase = 'pre_train'
         self.flipped_terminal = settings['flipped_terminals']
         self.flipped_actions = settings['flipped_actions']
 
@@ -40,12 +40,14 @@ class MountainCar_SARSA:
         self.reset_state()
 
     def initialize(self):
-        # This function can be used to initialize the domain, for example
-        # by randomizing the offset of the tilings.
-        # For our experiment, we used fixed tile positions. The reason is that
-        # because we only use 3 tilings, randomization can cause huge variances.
-        # with some representations being very bad (f.e., if all three tilings
-        # have similar offset).
+        """
+        This function can be used to initialize the domain, for example
+        by randomizing the offset of the tilings.
+        For our experiment, we used fixed tile positions. The reason is that
+        because we only use 3 tilings, randomization can cause huge variances.
+        with some representations being very bad (f.e., if all three tilings
+        have similar offset).
+            """
 
         x_tile_size = (self.x_range[1] - self.x_range[0]) / float(self.num_x_tiles)
         v_tile_size = (self.v_range[1] - self.v_range[0]) / float(self.num_v_tiles)
@@ -58,6 +60,13 @@ class MountainCar_SARSA:
         return [self.num_total_features, self.num_active_features, self.num_actions, self.gamma]
 
     def set_task(self, task):
+        """
+            This function sets the task
+            terminal 1 is the terminal at the top of the hill
+            terminal 2 is the terminal at the bottom of the hill
+            Task A -> Task 0,
+            Task B -> Task 1.
+            """
         self.task = task
         if self.flipped_terminal:
             if task == 0:  # taskA
@@ -75,6 +84,9 @@ class MountainCar_SARSA:
                 self.reward_terminal2 = 2
 
     def set_phase(self, phase):
+        """
+            This function sets the initial state at each phase of the experiment
+            """
         self.phase = phase
         if phase == 'pre_train':
             self.init_state = self.init_state_train
@@ -86,6 +98,11 @@ class MountainCar_SARSA:
             assert False, 'incorrect identifier'
 
     def set_eval_mode(self, eval):
+        """
+            Set the terminals with higher reward 1 and lower reward 0. It makes it easier
+            to calculate evaluation performance
+            The initial state needs to be adjusted as well
+                """
         if eval:
             if self.reward_terminal1 > self.reward_terminal2:
                 self.reward_terminal1 = 1
@@ -99,8 +116,11 @@ class MountainCar_SARSA:
             self.set_phase(self.phase)
 
     def _update_state(self, action):
-        # implement dynamics
-        #  flip the actions to cancel the effect of model learning
+        """
+            This function implements dynamics
+            if self.flipped_terminal is True: flip the actions to cancel the effect of model learning
+                """
+
         if self.flipped_actions:
             action = (action + 1) % 3
 
@@ -142,6 +162,15 @@ class MountainCar_SARSA:
         self.current_state['terminal'] = term
 
     def reset_state(self):
+        """
+            This function randomly generate the initial state. With prob = p, it takes the init_State from the first
+            interval and with prob = 1 - p from the second interval.
+            This scheme should be adjusted based on the domain such that during pre-training Task A can be fully solved
+            and during training Task B. And Evaluation area should be chosen such that after convergence, all the samples
+            taken from that ends at terminal with higher reward!
+            Return:
+                 current state: {'x', 'v', 'terminal'}
+                """
         reset = False
         x, v = 0, 0
         p = random.uniform(0, 1)

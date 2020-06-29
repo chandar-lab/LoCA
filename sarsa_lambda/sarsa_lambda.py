@@ -6,7 +6,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import math
 from copy import deepcopy
-from config import get_sarsa_setting
+from .settings import get_sarsa_setting
 from sarsa_lambda.mountain_car import MountainCar_SARSA
 import pickle
 
@@ -57,14 +57,16 @@ class SarsaLambdaAgent(object):
         self.Qs_old = 0
 
     def run_pretrain(self, experiment_settings, include_transition=False):
-        '''
-        Training phase
-        '''
+        """
+        This function runs pre-training phase on Task A (0) which includes local pre-training on task B (1)
+        in the case of non-shuffled actions
+        It also saves the agent after the end of local pre-training phase
+        Args:
+            experiment_settings
+            include_transition
+
+        """
         self.initialize()
-        # my_agent.set_epsilon(1.0)  # some high exploration early in training to ensure model gets learned well
-        # self.train_max_steps = experiment_settings['num_train_steps1']
-        # my_agent._train()
-        # my_agent.reset_epsilon()
         self.train_max_steps = experiment_settings['num_train_steps']
         self._pretrain(task=0, phase='pre_train', eval=True)
         if include_transition:
@@ -79,6 +81,14 @@ class SarsaLambdaAgent(object):
         self.domain.flipped_actions = False
         
     def run_train(self, experiment_settings):
+        """
+            This function runs training phase on Task B (1) and the evaluation
+            It also can plot the heatmap of state space of the domain for the number of steps each states takes to reach
+             the terminal or which termianl it is ended yp.
+            Args:
+                experiment_settings
+
+            """
         self.domain.set_task(1)  # set domain to task B
         self.domain.set_phase('train')
         self.train_max_steps = experiment_settings['num_test_steps']
@@ -100,10 +110,8 @@ class SarsaLambdaAgent(object):
             [G, n_steps, terminal, init_state, perf] = self._run_episode(num_datapoints=experiment_settings['num_datapoints'],
                                                                         eval=eval, fixed_behavior=self.fixed_behavior) #
             # self.decay_epsilon()
-
-            if self.episode_count > 100:
-                terminals_test.append(terminal)
-                init_states.append(init_state)
+            terminals_test.append(terminal)
+            init_states.append(init_state)
             G_test.append(G)
             self.episode_count += 1
             if self.episode_count % 50 == 0:
@@ -125,6 +133,14 @@ class SarsaLambdaAgent(object):
         return np.array(performance), steps
 
     def _pretrain(self, task, phase, eval):
+        """
+            This function runs pre-training phase on a given task and the evaluation
+            It also can plot the heatmap of state space of the domain for the number of steps each states takes to reach
+             the terminal or which termianl it is ended yp.
+            Args:
+                experiment_settings
+
+            """
         print("{} phase started.".format(phase))
         self.domain.set_task(task)  # set domain to task A
         self.domain.set_phase(phase)
@@ -166,32 +182,21 @@ class SarsaLambdaAgent(object):
             terminals_training.count(2) / len(terminals_training)))
         self.episode_count = 0
         self.theta_train = self.theta
-        self.behavior_policy = self.get_behavior_policy()
 
-    # def _local_pretrain(self):
-    #     print("Local pre-training phase started.")
-    #     self.domain.set_task(1)  # set domain to task B
-    #     self.domain.set_phase('transition')
-    #     assert self.theta_train is not None
-    #     self.theta = np.copy(self.theta_train)
-    #     print(''), print('reward terminal 1: {}, reward terminal 2: {}'.format(self.domain.reward_terminal1,
-    #                                                                            self.domain.reward_terminal2))
-    #     terminals_transition, init_states = [], []
-    #     self.step_counter, num_steps = 0, 0
-    #     while num_steps < self.train_max_steps:
-    #         [G, n_steps, terminal, init_state, _] = self._run_episode(fixed_behavior=True)
-    #         terminals_transition.append(terminal)
-    #         init_states.append(init_state)
-    #         num_steps += n_steps
-    #         if num_steps % 5000 == 0:
-    #             print('Step: {} ] G: {:<8.3f} ] Episodes Collected: {:<10d}'.format(
-    #                 num_steps, G, self.episode_count))
-    #
-    #     self.theta_train = self.theta
-    #     self.episode_count = 0
-    #     plot_state_map(init_states, terminals_transition, phase='transition')
+    def _run_episode(self, num_datapoints=10, eval=False, fixed_behavior=False):
+        """
+            This function runs one episode and runs evaluations at window size intervals
+            Args:
+                num_datapoints: number of evaluation steps
+                eval: Run evaluation or not
+            Return:
+                G: Discounted return of the episode
+                num_steps: number of steps of each episode,
+                terminal: which terminal is ended,
+                init_state: Episode started at this state
+                performance: Evaluation performance (Top terminal fraction between 0 and 1)
 
-    def _run_episode(self, num_datapoints=10, eval=False, fixed_behavior = False):
+            """
         window_size = self.train_max_steps // num_datapoints
         data_point = 0
         performance = []
@@ -300,16 +305,6 @@ class SarsaLambdaAgent(object):
 
         return action
 
-    def select_from_policy(self, state, policy):
-        # rnd = np.random.random()/1.0000001
-        # sum_p = 0.0
-        # for a in range(self.num_actions):
-        #     sum_p += policy[state][a]
-        #     if rnd < sum_p:
-        #         return a
-        # assert False, "action not selected"
-        pass
-
     def initialize(self):
         self.domain.initialize()
         for i in range(self.total_features):
@@ -327,6 +322,12 @@ class SarsaLambdaAgent(object):
         return action_features
 
     def eval_policy(self):
+        """
+            This function runs the evaluation eval_episodes times and take average
+            Basically it count how many times it ends at higher reward terminal and calculates the fraction
+            Return:
+                average performance
+            """
         epsilon = self.epsilon
         self.set_epsilon(self.eval_epsilon)
         # self._initialize_trace()
@@ -351,23 +352,12 @@ class SarsaLambdaAgent(object):
                     if reward == 0:
                         failed_init.append(init)
                     break
-        if c > 0:
-            performance = sum_rewards/self.eval_episodes
-            # if len(failed_init) > 0:
-            #     print(failed_init)
+
+        performance = sum_rewards/self.eval_episodes
         self.domain.set_eval_mode(False)
         self.set_epsilon(epsilon)
         # print('Evaluation Done!')
         return performance
-    #
-    # def get_eval_policy(self):
-    #     return self._get_egreedy_policy(self.q, self.eval_epsilon)
-
-    def get_behavior_policy(self):
-        return self._get_egreedy_policy()
-
-    def _get_egreedy_policy(self):
-        return None
 
     def decay_epsilon(self):
         epsilon = self.epsilon_init * self.ep_decay_rate ** (self.episode_count / self.epsilon_decay_steps)
@@ -375,6 +365,12 @@ class SarsaLambdaAgent(object):
 
 
 def plot_state_map(init_states, terminals, phase='transition'):
+    """
+        This function gets the list of initial states and terminals each episode ended and plots the heatmap
+        Args:
+            init_states: list
+            terminals = list
+        """
     state_map_vec = np.empty((140, 170, 10000))
     state_map_vec[:] = np.NaN
     x, v = list(np.round(np.linspace(-1.2, 0.5, 170), 2)), list(np.round(np.linspace(-0.07, 0.07, 140), 3))
@@ -403,13 +399,26 @@ def plot_state_map(init_states, terminals, phase='transition'):
     plt.show()
 
 
-def plot_total_return(return_curve, label='test'):
+def plot_total_return(return_curve, label='pre-training'):
+    """
+       This function gets the list of the discounted returns and plot the curve
+       Args:
+           return_curve: list
+           label: {pre-training, training}
+       """
     plt.plot(np.convolve(return_curve, np.ones((1,)) / 1, mode='same'), label=label)
     plt.legend()
     plt.show()
 
 
 def build_agent(domain_settings, args):
+    """
+        This function gets the agent's settings and domain's setting and build the sarsa_lambda agent
+        Args:
+            domain_settings
+        Return:
+            sarsa_lambda agent
+        """
     agent_settings = get_sarsa_setting()
     my_domain = MountainCar_SARSA(domain_settings)
     my_agent = SarsaLambdaAgent(agent_settings, my_domain)
@@ -418,8 +427,15 @@ def build_agent(domain_settings, args):
 
 
 def load_agent(agent_args, domain_settings, experiment_settings):
-    with open('results/' + agent_args.env + '/sarsa_lambda/agents/' + experiment_settings['filename'] + '.pkl', 'rb') as input:
+    """
+        This function loads the agent from the results directory results/env_name/method_name/filename
+        Args:
+            experiment_settings
+        Return:
+            sarsa_lambda agent
+        """
+    with open('results/' + experiment_settings['env'] + '/sarsa_lambda/agents/' + experiment_settings['filename'] + '.pkl', 'rb') as input:
         my_agent = pickle.load(input)
 
-    return my_agent, _
+    return my_agent, None
 

@@ -8,9 +8,9 @@ from numpy import trapz
 filenames = {}; i = 0
 
 filenames[i] = 'MountainCar/sarsa_lambda/sarsa_lambda'; i+=1
-# filenames[i] = 'sarsa_lambda/sarsa_lambda_flipped_actions'; i+=1
+filenames[i] = 'MountainCar/sarsa_lambda/sarsa_lambda_flipped_actions'; i+=1
 #
-filenames[i] = 'MountainCar/MuZero/MuZero'; i+=1
+# filenames[i] = 'MountainCar/MuZero/MuZero'; i+=1
 # filenames[i] = 'MuZero/MuZero_flipped_actions'; i+=1
 #
 # filenames[i] = 'sarsa_lambda_flipped_terminal'; i+=1
@@ -54,7 +54,7 @@ std_sc = [0.3, 0.3, 1, 0.5]
 # fig, axs = plt.subplots(1)
 # fig.suptitle('MountainCar-v0')
 
-for i in [0, 1]:
+for i in range(num_results):
 
     plt.plot(time[i], np.convolve(results[i][:], np.ones((mv[i],)) / mv[i], mode='same'), color[i],
                 label=labels[i])
