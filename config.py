@@ -1,7 +1,7 @@
 import os
 
 
-def get_doamin_setting(args):
+def get_domain_setting(args):
     """
         This function returns domain settings
         Args:
