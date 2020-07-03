@@ -8,7 +8,7 @@ inspired by work from neuroscience on detecting model-based behavior in humans a
 ## Setup
 
 Experimental setup for evaluating model-based behavior.  Task A and task B have the same transition dynamics, but a 
-reward function that is locally different.$\gamma$ should be close to 1, to ensure that for most of the state-space, an optimal 
+reward function that is locally different.The discount factor (\gamma) should be close to 1, to ensure that for most of the state-space, an optimal 
 agent moves toward the high-reward terminal. An experiment consists of first pretraining a method on task A, 
 followed by local pretraining around T1of task B. After pretraining, the agent is trained and evaluated on the full 
 environment of task B. The additional training a method needs before it has fully adapted to task B determines the size
