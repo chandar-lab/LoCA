@@ -17,15 +17,6 @@ environment of task B. The additional training a method needs before it has full
 ![setup](https://user-images.githubusercontent.com/43013139/85905543-a7d8a200-b7d9-11ea-96d5-15f4ef93a076.png)
 
  
- ### Citation:
-
-If you find this work useful, please consider citing our [paper]().
-```
-@misc{
-}
-```
-<br/>
-
 ### Requirements:
 To install the requirements you can do:
 
@@ -73,3 +64,13 @@ at the bottom of the hill with a velocity close to 0.
 | `--env`    {MountainCar}                      |Name of the environment|
 | `----no_pre_training`            |Skip the pretraining phase|
 | `----flipped_actions`          |pretrain with shuffled actions to cancel the effect of model learning|
+
+ ### Citation:
+
+If you find this work useful, please consider citing our [paper]().
+```
+@misc{
+}
+```
+<br/>
+
