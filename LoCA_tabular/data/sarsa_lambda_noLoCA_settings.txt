@@ -1,0 +1,1 @@
+{"method_name": "sarsa_lambda", "n_step": 1, "avg_regret": 29045.0, "std_error": 325.99463185764273, "num_steps": 100000, "num_datapoints": 200, "num_runs": 10, "stochasticity": 0, "state_space_multiplier": 1, "alpha": 0.05, "lambda": 0.95, "q_init": 4}
