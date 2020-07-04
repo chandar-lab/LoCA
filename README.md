@@ -28,6 +28,11 @@ pip install -r requirements.txt
 ![gridworld-1](https://user-images.githubusercontent.com/43013139/86503857-345a0600-bd80-11ea-8ce5-7bebc5afb6d8.png)
 
 ### Usage:
+First, change the directory to the LoCA_tabular:
+```
+cd LoCA_tabular
+```
+then use these commands to run the training or plot the results.
 * Training: ```python LoCA_tabular/main.py ```
 * Visualize results : ```python LoCA_tabular/show_results.py```
 

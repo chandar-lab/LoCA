@@ -8,11 +8,11 @@ import numpy as np
 import time
 import json
 import math
-from .domain import Domain
-from .modelbased_nstep import ModelBased_nstep_agent
-from .modelbased import ModelBased_agent
-from .sarsa_lambda import SarsaLambda_agent
-from .qlearning import Qlearning_agent
+from domain import Domain
+from modelbased_nstep import ModelBased_nstep_agent
+from modelbased import ModelBased_agent
+from sarsa_lambda import SarsaLambda_agent
+from qlearning import Qlearning_agent
 
 
 # Settings  ######################################################################
