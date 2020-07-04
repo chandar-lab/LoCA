@@ -17,7 +17,7 @@ environment of task B. The additional training a method needs before it has full
 
  
 ### Requirements:
-To install the requirements you can do:
+This code is tested with python 3.7. To install the required packages you can use:
 
 ```
 pip install -r requirements.txt
