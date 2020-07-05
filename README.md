@@ -72,7 +72,7 @@ at the bottom of the hill with a velocity close to 0.
 The MuZero code for the experiments is adopted from [here](https://github.com/koulanurag/muzero-pytorch).
  ### Citation:
 
-If you find this work useful, please consider citing our [paper]().
+If you found this work useful, please consider citing our [paper]().
 ```
 @misc{
 }
