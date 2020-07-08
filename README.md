@@ -52,7 +52,8 @@ We adopted MountainCar env for LOCA regret calculation. In our variation, the ex
 hill corresponds with T1; we added an additional terminal state to the domain, T2, that corresponds with the cart being 
 at the bottom of the hill with a velocity close to 0.
 
-<img width=“500” height=“400" alt=“sample1_3” src=“https://user-images.githubusercontent.com/43013139/85905575-c048bc80-b7d9-11ea-9077-323173ae69e3.png”>
+
+![mountaincar](https://user-images.githubusercontent.com/43013139/85905575-c048bc80-b7d9-11ea-9077-323173ae69e3.png)
 
 #### Usage:
 * Pre-training + Training: ```python main.py --method sarsa_lambda --env MountainCar ```
