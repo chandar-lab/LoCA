@@ -72,7 +72,7 @@ at the bottom of the hill with a velocity close to 0.
 The MuZero code for the experiments is adopted from [here](https://github.com/koulanurag/muzero-pytorch).
  ### Citation:
 
-If you found this work useful, please consider citing our [paper]().
+If you found this work useful, please consider citing our [paper](https://arxiv.org/abs/2007.03158).
 ```
 @misc{seijen2020loca,
     title={The LoCA Regret: A Consistent Metric to Evaluate Model-Based Behavior in Reinforcement Learning},
