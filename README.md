@@ -25,7 +25,9 @@ pip install -r requirements.txt
 
 ### Tabular Experiments
 
-![gridworld-1](https://user-images.githubusercontent.com/43013139/86503857-345a0600-bd80-11ea-8ce5-7bebc5afb6d8.png)
+<img width="500" height="400" alt="sample1_3" src="https://user-images.githubusercontent.com/43013139/86503857-345a0600-bd80-11ea-8ce5-7bebc5afb6d8.png">
+
+
 
 #### Usage:
 First, change the directory to the LoCA_tabular:
