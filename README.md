@@ -53,7 +53,7 @@ hill corresponds with T1; we added an additional terminal state to the domain, T
 at the bottom of the hill with a velocity close to 0.
 
 
-![mountaincar](https://user-images.githubusercontent.com/43013139/85905575-c048bc80-b7d9-11ea-9077-323173ae69e3.png)
+<img width="500" height="400" alt="sample1_3" src="https://user-images.githubusercontent.com/43013139/85905575-c048bc80-b7d9-11ea-9077-323173ae69e3.png">
 
 #### Usage:
 * Pre-training + Training: ```python main.py --method sarsa_lambda --env MountainCar ```
