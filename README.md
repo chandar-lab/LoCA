@@ -74,7 +74,13 @@ The MuZero code for the experiments is adopted from [here](https://github.com/ko
 
 If you found this work useful, please consider citing our [paper]().
 ```
-@misc{
+@misc{seijen2020loca,
+    title={The LoCA Regret: A Consistent Metric to Evaluate Model-Based Behavior in Reinforcement Learning},
+    author={Harm van Seijen and Hadi Nekoei and Evan Racah and Sarath Chandar},
+    year={2020},
+    eprint={2007.03158},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG}
 }
 ```
 <br/>
