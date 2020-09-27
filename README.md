@@ -58,6 +58,11 @@ at the bottom of the hill with a velocity close to 0.
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img width="500" height="400" alt="sample1_3" src="https://user-images.githubusercontent.com/43013139/85905575-c048bc80-b7d9-11ea-9077-323173ae69e3.png">
 
 #### Usage:
+First, change the directory to the LoCA_tabular:
+```
+cd LoCA_tabular
+```
+
 * Pre-training + Training: ```python main.py --method sarsa_lambda --env MountainCar ```
 * Pre-training with shuffled actions + Training: ```python main.py --env MountainCar --flipped_actions```
 * Training: ```python main.py --env MountainCar --no_pre_training ```
