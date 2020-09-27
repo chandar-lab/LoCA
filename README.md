@@ -32,7 +32,7 @@ pip install -r requirements.txt
 #### Usage:
 First, change the directory to the LoCA_tabular:
 ```
-cd LoCA_MountainCar
+cd LoCA_tabular
 ```
 then use these commands to run the training or plot the results.
 * Training: ```python LoCA_tabular/main.py ```
@@ -60,7 +60,7 @@ at the bottom of the hill with a velocity close to 0.
 #### Usage:
 First, change the directory to the LoCA_tabular:
 ```
-cd LoCA_tabular
+cd LoCA_MountainCar
 ```
 
 * Pre-training + Training: ```python main.py --method sarsa_lambda --env MountainCar ```
