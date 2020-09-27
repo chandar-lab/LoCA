@@ -48,7 +48,7 @@ plt.rc('figure', titlesize=font_size_title)  # fontsize of the figure title
 
 color = 'krgbykrgby'
 titles = ['Original', 'Flipped']
-mv = [4, 4, 1, 1]
+mv = [4]*len(num_results)
 
 for i in range(num_results):
 
