@@ -49,7 +49,7 @@ class BaseMuZeroConfig(object):
 
         # Root prior exploration noise.
         self.root_dirichlet_alpha = dirichlet_alpha
-        self.root_exploration_fraction = 0.33 # 0.25
+        self.root_exploration_fraction = 0.3
 
         # UCB formula
         self.pb_c_base = 19652
@@ -66,14 +66,13 @@ class BaseMuZeroConfig(object):
         self.checkpoint_interval = checkpoint_interval
         self.window_size = window_size
         self.batch_size = batch_size
-        self.num_unroll_steps = 1
+        self.num_unroll_steps = 3
         self.td_steps = td_steps
         self.value_loss_coeff = value_loss_coeff
         self.device = 'cpu'
         self.exp_path = None  # experiment path
         self.debug = False
         self.model_path = None
-        self.seed = None
         self.value_support = value_support
         self.reward_support = reward_support
 
@@ -86,9 +85,7 @@ class BaseMuZeroConfig(object):
 
         # replay buffer
         self.priority_prob_alpha = 1
-        self.use_target_model = True
         self.revisit_policy_search_rate = 0
-        self.use_max_priority = None
 
         # Experiment settings
         self.env = 'MountainCar'  # 'Name of the environment'
@@ -104,7 +101,7 @@ class BaseMuZeroConfig(object):
         self.use_max_priority = False  # 'Forces max priority assignment for new incoming data in replay buffer '
         self.use_priority = False  # 'Uses priority for data sampling in replay buffer. '
         # 'Also, priority for new data is calculated based on loss (default: False)'
-        self.use_target_model = False  # 'Use target model for bootstrap value estimation (default: %(default)s)'
+        self.use_target_model = True  # 'Use target model for bootstrap value estimation (default: %(default)s)'
         self.test_episodes = 10  # 'Evaluation episode count (default: %(default)s)'
         self.flippedTask = False  # Flipped terminal in the case of tow terminals
         self.flippedActions = False  # Shuffling the actions to cancel the effect of model learning
