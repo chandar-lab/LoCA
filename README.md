@@ -35,8 +35,8 @@ First, change the directory to the LoCA_tabular:
 cd LoCA_tabular
 ```
 then use these commands to run the training or plot the results.
-* Training: ```python LoCA_tabular/main.py ```
-* Visualize results : ```python LoCA_tabular/show_results.py```
+* Training: ```python main.py ```
+* Visualize results : ```python show_results.py```
 
 
 |PARAMETERS | Description|
